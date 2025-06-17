@@ -1,0 +1,18 @@
+# macOS system file
+.DS_Store
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+
+# PyCharm/IntelliJ project files
+.idea/
+
+# Environment config files
+.env
+
+# Service account keys (never commit)
+*.json
