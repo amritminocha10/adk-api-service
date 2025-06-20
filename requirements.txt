@@ -1,2 +1,5 @@
-Flask
 google-adk
+fastapi
+uvicorn
+python-dotenv
+google-generativeai

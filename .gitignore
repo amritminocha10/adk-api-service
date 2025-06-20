@@ -1,18 +1,12 @@
-# macOS system file
-.DS_Store
-
-# Python cache
+venv
+.env
 __pycache__/
 *.pyc
-
-# Virtual environment
+*.pyo
+*.pyd
+.Python
+env/
 venv/
-
-# PyCharm/IntelliJ project files
-.idea/
-
-# Environment config files
-.env
-
-# Service account keys (never commit)
-*.json
+ENV/
+env.bak/
+venv.bak/

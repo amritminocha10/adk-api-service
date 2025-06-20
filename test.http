@@ -1,0 +1,6 @@
+POST http://localhost:8001/vin-lookup
+Content-Type: application/json
+
+{
+  "vin": "1HGCM82633A004352"
+}
