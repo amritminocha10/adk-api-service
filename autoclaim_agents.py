@@ -1,18 +1,18 @@
 from google.adk.agents import LlmAgent, LoopAgent
-from tools import decode_vin, search_knowledge_base
+from tools import decode_vin, search_knowledge_base,decode_vin_no
 from pydantic import BaseModel
-from typing import Optional, Dict
+from typing import Optional, Dict,List
 
 
 class InspectionInput(BaseModel):
-    vehicle_image: str  
+    vehicle_images: List[str]  
 
 class InspectionOutput(BaseModel):
     image_authenticity: str  
 
 inspection_agent = LlmAgent(
     name="InspectionAgent",
-    model="gemini-2.5-pro-exp-03-25",
+    model="gemini-2.5-flash-preview-04-17",
     instruction="""
 You are an expert forensic image inspector. Analyze the submitted vehicle image (base64-encoded in `vehicle_image`) and determine whether it has been altered or doctored.
 
@@ -34,7 +34,7 @@ You are an expert forensic image inspector. Analyze the submitted vehicle image 
 
 
 class VisionInput(BaseModel):
-    vehicle_image: str
+    vehicle_images: List[str]
     customer_prompt: str
 
 class VisionOutput(BaseModel):
@@ -45,9 +45,11 @@ class VisionOutput(BaseModel):
 
 vision_agent = LlmAgent(
     name="VisionAgent",
-    model="gemini-2.5-pro-exp-03-25",
+    model="gemini-2.5-flash-preview-04-17",
     instruction="""
-You are a vehicle damage analyst with computer vision capabilities. Analyze the uploaded vehicle image and the accompanying customer prompt to determine the damage details.
+You are a vehicle damage analyst with computer vision capabilities. Analyze the uploaded vehicle images and the accompanying customer prompt to determine the damage details.
+Analyze each uploaded vehicle image (base64-encoded)...
+For each image, assess damage independently and provide combined summary.
 
 **Task:**
 - Identify the type and severity of visible vehicle damage.
@@ -55,7 +57,7 @@ You are a vehicle damage analyst with computer vision capabilities. Analyze the 
 - Provide structured metadata about the damage.
 
 **Input (VisionInput):**
-- vehicle_image (str): Base64-encoded vehicle image.
+- vehicle_images (List[str]): Base64-encoded vehicle images.
 - customer_prompt (str): Customer's description or concern.
 
 **Output (VisionOutput):**
@@ -82,7 +84,7 @@ class VinOutput(BaseModel):
 
 vin_agent = LlmAgent(
     name="VinAgent",
-    model="gemini-2.5-pro-exp-03-25",
+    model="gemini-2.5-flash-preview-04-17",
     instruction="""
 You are a VIN decoder. Use the `decode_vin` tool to fetch detailed information about the vehicle from the given VIN number.
 
@@ -117,7 +119,7 @@ class KBSearchOutput(BaseModel):
 
 kb_agent = LlmAgent(
     name="KBSearchAgent",
-    model="gemini-2.5-pro-exp-03-25",
+    model="gemini-2.5-flash-preview-04-17",
     instruction="""
 You are a warranty knowledge base searcher. Use the `search_knowledge_base` tool to find matching warranty policies based on damage type and VIN information.
 
@@ -151,7 +153,7 @@ class ReportOutput(BaseModel):
 
 report_agent = LlmAgent(
     name="ReportAgent",
-    model="gemini-2.5-pro-exp-03-25",
+    model="gemini-2.5-flash-preview-04-17",
     instruction="""
 You are a claim report generator. Use inputs from previous agents (inspection, vision analysis, VIN decoding, and KB search) to compile a well-structured claim report.
 
