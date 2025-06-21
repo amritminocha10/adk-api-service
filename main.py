@@ -1,5 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Form, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from google.adk.runners import Runner
@@ -13,6 +13,8 @@ import os
 import asyncio
 import json
 from typing import List
+from fastapi.staticfiles import StaticFiles
+
 
 APP_NAME = "auto_claim_360"
 USER_ID = "user_001"
@@ -38,10 +40,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post("/process-claim")
+app.mount("/static", StaticFiles(directory="build/static"), name="static")
+
+@app.post("/upload-claim")
 async def process_claim( 
     request: Request,
-    vehicle_images: List[UploadFile] = File(...),
+    vehicle_image: List[UploadFile] = File(...),
     vin: str = Form(...),
     customer_prompt: str = Form(...) 
 ):
@@ -54,7 +58,7 @@ async def process_claim(
         types.Part(text=f"VIN: {vin}")
     ]
 
-    for vehicle_image in vehicle_images:
+    for vehicle_image in vehicle_image:
         image_bytes = await vehicle_image.read()
         encoded_image = base64.b64encode(image_bytes).decode("utf-8")
         encoded_images.append(encoded_image)
@@ -117,3 +121,8 @@ async def stream_claim(session_id: str, request: Request):
     content = stored_claims[session_id]
     runner = request.app.state.runner
     return StreamingResponse(event_generator(session_id, runner, content), media_type="application/x-ndjson")
+
+
+@app.get("/")
+async def read_index():
+    return FileResponse("build/index.html")
