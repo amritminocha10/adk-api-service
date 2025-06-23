@@ -89,7 +89,7 @@ async def process_claim(
         raise ValueError()
     except Exception as e:
       print(f"VIN decode failed for {vin}: {e}")
-      return JSONResponse(status_code=400, content={f"error": "Invalid VIN — decode failed : {e}"})
+      return JSONResponse(status_code=400, content={"error": f"Invalid VIN — decode failed: {e}"})
     
     encoded_images = []
     uploaded_urls = []
