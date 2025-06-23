@@ -171,7 +171,7 @@ You are a claim report generator. Use inputs from previous agents (inspection, v
 
 **Output (ReportOutput):**
 - final_report (str): Human-readable structured report (Markdown or formatted text). Include sections: Image Check, Damage Details, Vehicle Info, Warranty Evaluation, Final Assessment.
-- status (str): One of ["Accept", "Reject"] based on whether the claim is eligible under warranty. Use "Reject" if image is doctored or damage isn't covered.
+- status (str): One of ["Accept","PartialAccept","Reject"] based on whether the claim is eligible under warranty. Use "Reject" if image is doctored or damage isn't covered or if VIN is invalid. Use "PartialAccept" if some damage is covered but not all.
 """,
     input_schema=ReportInput,
     output_schema=ReportOutput,
