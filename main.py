@@ -7,7 +7,7 @@ from google.adk.sessions import InMemorySessionService
 from google.genai import types
 from google.genai.types import Part, Blob
 from autoclaim_agents import autoclaim_agent
-from util import upload_image_to_gcs, insert_claim_to_db
+from util import upload_image_to_gcs, insert_claim_to_db,decode_vin_number
 import base64
 import uuid
 import os
@@ -17,7 +17,7 @@ from typing import List
 from fastapi.staticfiles import StaticFiles
 import pathlib
 import pymssql
-from tools import decode_vin_no
+
 
 APP_NAME = "auto_claim_360"
 USER_ID = "user_001"
@@ -86,10 +86,12 @@ async def process_claim(
         return JSONResponse(status_code=400, content={"error": "Invalid VIN length"})
     
     try:
-      vin_check = decode_vin_no(vin)
+      vin_check = decode_vin_number(vin)
+      print(f"VIN decode result: {vin_check}")
       if isinstance(vin_check, str) and vin_check.startswith("error"):
         raise ValueError()
-    except Exception:
+    except Exception as e:
+      print(f"VIN decode failed for {vin}: {e}")
       return JSONResponse(status_code=400, content={"error": "Invalid VIN — decode failed"})
     
     encoded_images = []

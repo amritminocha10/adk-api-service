@@ -8,6 +8,9 @@ load_dotenv()
 import re
 from google.genai.types import Part, Blob
 import base64
+import requests
+from datetime import datetime
+
 
 
 def load_instruction_from_file(
@@ -83,11 +86,54 @@ def sanitize_text(text):
     """Remove characters that can't be encoded in UTF-8."""
     return text.encode("utf-8", "ignore").decode("utf-8", "ignore")     
         
-     
-     
-       
     
     
+    
+    
+def decode_vin_number(vin: str) -> str:
+    print(f"[decode_vin_number] Decoding VIN: {vin}")
+
+    url = f"https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvalues/{vin}?format=json"
+    
+    try:
+        resp = requests.get(url, verify=False, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        print(f"[decode_vin_number] Response from NHTSA: {data}")
+    except requests.RequestException as e:
+        print(f"[decode_vin_number] HTTP request failed: {e}")
+        return "error: Failed to fetch VIN info from NHTSA"
+    except ValueError as e:
+        print(f"[decode_vin_number] JSON decoding failed: {e}")
+        return "error: Invalid JSON response from NHTSA"
+
+    try:
+        result = data.get("Results", [{}])[0]
+        if not result:
+            print("[decode_vin_number] Empty result object in response")
+            return "error: No results found for the provided VIN."
+    except Exception as e:
+        print(f"[decode_vin_number] Error extracting result: {e}")
+        return "error: Malformed response structure"
+
+    try:
+        make  = result.get("Make", "").title()
+        model = result.get("Model", "").title()
+        year  = result.get("ModelYear", "")
+        print(f"[decode_vin_number] Extracted Make: {make}, Model: {model}, Year: {year}")
+
+        # Estimate warranty
+        warranty = "Unknown"
+        current_year = datetime.now().year
+        year_int = int(year)
+        warranty = "Yes" if current_year - year_int <= 3 else "No"
+
+        print(f"[decode_vin_number] Returning decoded VIN info: Make: {make}, Model: {model}, Year: {year}, Warranty: {warranty}")
+        return f"Make: {make}, Model: {model}, Year: {year}, Warranty: {warranty}"
+
+    except Exception as e:
+        print(f"[decode_vin_number] Error processing result fields: {e}")
+        return "error: Could not extract vehicle info"
 
 
 # from fastapi import Query

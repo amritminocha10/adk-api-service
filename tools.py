@@ -22,9 +22,9 @@ vertexai.init(project=PROJECT_ID, location=LOCATION)
 @tools.FunctionTool
 def decode_vin(vin: str) -> dict:
     print(f"Decoding VIN: {vin}")
-    return f"Make: Honda, Model: Civic, Year: 2022, Warranty: Yes"
+    return f"Make: Honda, Model: Civic, Year: 2022, Warranty: Yes" 
 
-@tools.FunctionTool
+@tools.FunctionTool 
 def search_knowledge_base(query: str) -> dict:
     print(f"Searching knowledge base with query: {query}")
     try:
