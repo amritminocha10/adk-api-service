@@ -27,11 +27,11 @@ session_service = InMemorySessionService()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("🟢 Lifespan started....")
+    print("Lifespan started....")
     await session_service.create_session(app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID)
     app.state.runner = Runner(agent=autoclaim_agent, app_name=APP_NAME, session_service=session_service)
     yield
-    print("🔴 Lifespan ended")
+    print("Lifespan ended")
 
 
 app = FastAPI(lifespan=lifespan)
@@ -47,7 +47,6 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory="build/static"), name="static")
 
 
-# 🔧 Serialize Part object to dict
 def serialize_part(part):
     if part.text:
         return {"text": part.text}
@@ -61,8 +60,6 @@ def serialize_part(part):
     else:
         return {}
 
-
-# 🔁 Deserialize Part dict to Part object
 def deserialize_part(part_dict):
     if "text" in part_dict:
         return Part(text=part_dict["text"])
@@ -92,7 +89,7 @@ async def process_claim(
         raise ValueError()
     except Exception as e:
       print(f"VIN decode failed for {vin}: {e}")
-      return JSONResponse(status_code=400, content={"error": "Invalid VIN — decode failed"})
+      return JSONResponse(status_code=400, content={f"error": "Invalid VIN — decode failed : {e}"})
     
     encoded_images = []
     uploaded_urls = []
