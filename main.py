@@ -42,13 +42,6 @@ app.add_middleware(
 
 app.mount("/static", StaticFiles(directory="build/static"), name="static")
 
-@app.get("/{filename}")
-async def serve_public_files(filename: str):
-    file_path = pathlib.Path("build") / filename
-    if file_path.exists() and file_path.is_file():
-        return FileResponse(file_path)
-    return FileResponse("build/index.html")
-
 @app.post("/upload-claim")
 async def process_claim( 
     # request: Request,
@@ -130,19 +123,25 @@ async def stream_claim(session_id: str, request: Request):
     return StreamingResponse(event_generator(session_id, runner, content), media_type="application/x-ndjson")
 
 
+
+@app.get("/.well-known/appspecific/com.chrome.devtools.json")
+async def chrome_devtools_handler():
+    return {"status": "ok"}  
+
+
 @app.get("/pingTest")
 async def ping_test():
     return {"message": "Ping Test Successful!"}
+
 
 @app.get("/")
 async def read_index():
     return FileResponse("build/index.html")
 
-@app.get("/.well-known/appspecific/com.chrome.devtools.json")
-async def chrome_devtools_handler():
-    return {"status": "ok"}  # or any placeholder you want
-
-# React Router fallback (for client-side routing)
 @app.get("/{full_path:path}")
 async def serve_react_app(full_path: str):
+    file_path = pathlib.Path("build") / full_path
+    if file_path.exists() and file_path.is_file():
+        return FileResponse(file_path)
     return FileResponse("build/index.html")
+

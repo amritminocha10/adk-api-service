@@ -6,3 +6,8 @@ google-generativeai
 pymssql
 pymupdf
 fitz
+google-cloud
+requests
+vertexai
+google-genai    
+pydantic
