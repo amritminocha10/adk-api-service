@@ -88,34 +88,47 @@ def search_knowledge_base(query: str) -> dict:
         return {"error": str(e)}
 
 @tools.FunctionTool
-def decode_vin_no(vin: str) -> dict:
-    print(f"Decoding VIN: {vin}")
-    # 1) Call the free NHTSA VPIC VIN‐decode endpoint
+def decode_vin_no(vin: str) -> str:
+    print(f"[decode_vin_no] Decoding VIN: {vin}")
+    
     url = f"https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvalues/{vin}?format=json"
-    resp = requests.get(url,verify=False)
-    resp.raise_for_status()
-    data = resp.json()
-    print(f"Response from NHTSA: {data}")
-    # 2) Grab the first result (it always returns a list of length 1 for this endpoint)
-    result = data.get("Results", [{}])[0]
-    print(f"Decoded result: {result}")
-    if not result:
-        return "error: No results found for the provided VIN."
-    # 3) Extract the fields you care about
-    make  = result.get("Make", "").title()
-    model = result.get("Model", "").title()
-    year  = result.get("ModelYear", "")
-    print(f"Extracted Make: {make}, Model: {model}, Year: {year}")
-    # 4) Derving a warranty flag, we can change the no of years of warranty
-    warranty = "Unknown"
+    
     try:
+        resp = requests.get(url, verify=False, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        print(f"[decode_vin_no] Response from NHTSA: {data}")
+    except requests.RequestException as e:
+        print(f"[decode_vin_no] HTTP request failed: {e}")
+        return "error: Failed to fetch VIN info from NHTSA"
+    except ValueError as e:
+        print(f"[decode_vin_no] JSON decoding failed: {e}")
+        return "error: Invalid JSON response from NHTSA"
+
+    try:
+        result = data.get("Results", [{}])[0]
+        if not result:
+            print("[decode_vin_no] Empty result object in response")
+            return "error: No results found for the provided VIN."
+    except Exception as e:
+        print(f"[decode_vin_no] Error extracting result: {e}")
+        return "error: Malformed response structure"
+
+    try:
+        make  = result.get("Make", "").title()
+        model = result.get("Model", "").title()
+        year  = result.get("ModelYear", "")
+        print(f"[decode_vin_no] Extracted Make: {make}, Model: {model}, Year: {year}")
+
+        # Estimate warranty
+        warranty = "Unknown"
         current_year = datetime.now().year
         year_int = int(year)
-        warranty = "Yes" if current_year - year_int <= 5 else "No"
-    except (ValueError, TypeError):
-        pass
+        warranty = "Yes" if current_year - year_int <= 3 else "No"
 
-    # 5) Return the same shape as before
-    return f"Make: {make}, Model: {model}, Year: {year}, Warranty: {warranty}"
-    
+        print(f"[decode_vin_no] Returning decoded VIN info: Make: {make}, Model: {model}, Year: {year}, Warranty: {warranty}")
+        return f"Make: {make}, Model: {model}, Year: {year}, Warranty: {warranty}"
 
+    except Exception as e:
+        print(f"[decode_vin_no] Error processing result fields: {e}")
+        return "error: Could not extract vehicle info"

@@ -6,7 +6,8 @@ import json
 from typing import List
 load_dotenv()
 import re
-
+from google.genai.types import Part, Blob
+import base64
 
 
 def load_instruction_from_file(
@@ -82,7 +83,13 @@ def sanitize_text(text):
     """Remove characters that can't be encoded in UTF-8."""
     return text.encode("utf-8", "ignore").decode("utf-8", "ignore")     
         
-        
+     
+     
+       
+    
+    
+
+
 # from fastapi import Query
 # from datetime import timedelta
 

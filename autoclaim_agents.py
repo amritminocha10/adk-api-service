@@ -104,10 +104,10 @@ You are a VIN decoder. Use the `decode_vin` tool to fetch detailed information a
 - warranty (str, optional): "Yes", "No", or relevant status.
 """,
     input_schema=VinInput,
-    tools=[decode_vin],
+    tools=[decode_vin_no],
     # output_schema=VinOutput,
 )
-
+    
 
 class KBSearchInput(BaseModel):
     damage_report: str
