@@ -8,7 +8,6 @@ import vertexai
 from vertexai.generative_models import GenerativeModel
 import PyPDF2
 from google.cloud import storage
-# import fitz # PyMuPDF for PDF processing
 import io
 import re
 from util import sanitize_text
