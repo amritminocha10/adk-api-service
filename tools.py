@@ -6,12 +6,12 @@ load_dotenv()
 from google.adk import tools 
 import vertexai
 from vertexai.generative_models import GenerativeModel
-
+import PyPDF2
 from google.cloud import storage
-import fitz # PyMuPDF for PDF processing
+# import fitz # PyMuPDF for PDF processing
 import io
-print("Using fitz from:", fitz.__file__)
-
+import re
+from util import sanitize_text
 
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")  
 LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
@@ -31,11 +31,13 @@ def search_knowledge_base(query: str) -> dict:
     try:
         # Setup GCS
         client = storage.Client()
-        bucket_name = GCP_BUCKET  # Make sure this is defined in your .env and loaded
-        prefix = GCP_BUCKET_FOLDER.rstrip('/') + '/'  # Ensure trailing slash only once
+        bucket_name = GCP_BUCKET
+        prefix = GCP_BUCKET_FOLDER.rstrip('/') + '/'
         bucket = client.bucket(bucket_name)
 
-        # Get list of PDF files in the folder
+        
+        
+        # Get list of PDF files
         blobs = list(bucket.list_blobs(prefix=prefix))
         pdf_blobs = [blob for blob in blobs if blob.name.lower().endswith(".pdf")]
 
@@ -50,15 +52,18 @@ def search_knowledge_base(query: str) -> dict:
                 print(f"Reading PDF: {blob.name}")
                 pdf_bytes = blob.download_as_bytes()
                 pdf_stream = io.BytesIO(pdf_bytes)
-                doc = fitz.open(stream=pdf_stream, filetype="pdf")
-                
 
+                reader = PyPDF2.PdfReader(pdf_stream)
                 text = ""
-                for page in doc:
-                    text += page.get_text()
+                for page in reader.pages:
+                    extracted = page.extract_text()
+                    if extracted:
+                        # Sanitize extracted page text
+                        text += sanitize_text(extracted)
 
-                # Add document separator
-                combined_text += f"\n\n---\nDocument: {blob.name}\n{text.strip()}\n"
+                # Also sanitize blob name just in case
+                safe_blob_name = sanitize_text(blob.name)
+                combined_text += f"\n\n---\nDocument: {safe_blob_name}\n{text.strip()}\n"
 
             except Exception as doc_err:
                 print(f"Error reading PDF {blob.name}: {doc_err}")
@@ -114,3 +119,4 @@ def decode_vin_no(vin: str) -> dict:
     # 5) Return the same shape as before
     return f"Make: {make}, Model: {model}, Year: {year}, Warranty: {warranty}"
     
+

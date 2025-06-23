@@ -4,10 +4,8 @@ uvicorn
 python-dotenv
 google-generativeai
 pymssql
-pymupdf
-fitz
+PyPDF2
 google-cloud
-requests
 vertexai
 google-genai    
 pydantic

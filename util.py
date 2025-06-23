@@ -5,6 +5,8 @@ import pymssql
 import json
 from typing import List
 load_dotenv()
+import re
+
 
 
 def load_instruction_from_file(
@@ -73,7 +75,12 @@ def insert_claim_to_db(vin: str, prompt: str, image_url_list: List[str]):
             "message": f"Database error: {str(e)}",
             "status_code": 500
         }
-        
+   
+   
+
+def sanitize_text(text):
+    """Remove characters that can't be encoded in UTF-8."""
+    return text.encode("utf-8", "ignore").decode("utf-8", "ignore")     
         
         
 # from fastapi import Query
